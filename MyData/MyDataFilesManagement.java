@@ -1,12 +1,10 @@
-// class for reading a file line by line and writing it to another file
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
 
 public class MyDataFilesManagement{
     public static ArrayList<String> readFromFile(String fileName) {
@@ -21,10 +19,24 @@ public class MyDataFilesManagement{
             }
             br.close();
         } catch (FileNotFoundException e) {
-            System.out.println("File not found");
+            System.out.println(e.getMessage());
         } catch (IOException e) {
-            System.out.println("Error");
+            System.out.println(e.getMessage());
         }
         return lines;
+    }
+
+    public static void writeToFile(String fileName, ArrayList<String> lines) {
+        try {
+            FileWriter fw = new FileWriter(fileName);
+            BufferedWriter bw = new BufferedWriter(fw);
+            for (String line : lines) {
+                bw.write(line);
+                bw.newLine();
+            }
+            bw.close();
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
+        }
     }
 }
