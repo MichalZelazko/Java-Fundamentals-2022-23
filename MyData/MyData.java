@@ -6,10 +6,10 @@ public class MyData {
     private int year;
     private String dayOfTheWeek;
     private final static String[] possibleFormats = new String[]{
-        "\\d{2}/\\d{2}/\\d{4}+ \\w*",
-        "\\d{2}/\\d/\\d{4}+ \\w*",
-        "\\d{4}-\\d{2}-\\d{2}+ \\w*",
-        "\\w*+ \\d{2}.\\d{2}.\\d{4}"
+        "\\d{2}/\\d{2}/\\d{4}+ \\w+",
+        "\\d{2}/\\d/\\d{4}+ \\w+",
+        "\\d{4}-\\d{2}-\\d{2}+ \\w+",
+        "\\w+ \\d{2}\\.\\d{2}\\.\\d{4}"
     };
 
     MyData(int day, int month, int year, String dayOfTheWeek) {
@@ -27,24 +27,24 @@ public class MyData {
     }
 
     public static int convertDate(String inFileName, String outFileName) {
-        ArrayList<String> dates = MyDataFilesManagement.readFromFile(inFileName);
+        ArrayList<String> dates = MyDataFileHandler.readFromFile(inFileName);
         ArrayList<String> convertedDates = new ArrayList<>();
         int i = 0;
         int pattern;
-        ArrayList<String> parsedDate = new ArrayList<>();
+        String[] parsedDate = new String[4];
         for (String date : dates) {
             try{
                 pattern = findUnrepeatedMatch(date, convertedDates);
                 convertedDates.add(date);
-                parsedDate = chooseParsingPattern(date, pattern);
-                MyData myData = new MyData(Integer.parseInt(parsedDate.get(0)), Integer.parseInt(parsedDate.get(1)), Integer.parseInt(parsedDate.get(2)), parsedDate.get(3));
+                parsedDate = parsing(date, pattern);
+                MyData myData = new MyData(Integer.parseInt(parsedDate[0]), Integer.parseInt(parsedDate[1]), Integer.parseInt(parsedDate[2]), parsedDate[3]);
                 myData.printData();
                 i+=1;
             } catch (IllegalArgumentException e) {
                 System.out.println(e.getMessage());
             }
         }
-        MyDataFilesManagement.writeToFile(outFileName, convertedDates);
+        MyDataFileHandler.writeToFile(outFileName, convertedDates);
         return i;
     }
 
@@ -53,7 +53,7 @@ public class MyData {
         for (String format : possibleFormats) {
             if (date.matches(format)) {
                 if(convertedDates.contains(date)){
-                    throw new IllegalArgumentException("Date already exists");
+                    throw new IllegalArgumentException("Date has already been converted");
                 }
                 return i;
             }
@@ -62,58 +62,39 @@ public class MyData {
         throw new IllegalArgumentException("Date format is incorrect");
     }
 
-    private static ArrayList<String> parsePattern0(String date){
-        ArrayList<String> parsedDate = new ArrayList<>();
-        parsedDate.add(date.substring(0,2));
-        parsedDate.add(date.substring(3,5));
-        parsedDate.add(date.substring(6,10));
-        parsedDate.add(date.substring(11));
+    private static String[] parsing(String date, int pattern){
+        String[] parsedDate = new String[4];
+        String auxArray[] = date.split(" ");
+        String auxDateArray[] = new String[3];
+        parsedDate = handleWeekday(parsedDate, auxArray, date, pattern);
+        parsedDate = handleNumericalDate(parsedDate, auxArray, auxDateArray, date, pattern);
         return parsedDate;
     }
 
-    private static ArrayList<String> parsePattern1(String date){
-        ArrayList<String> parsedDate = new ArrayList<>();
-        parsedDate.add(date.substring(0,2));
-        parsedDate.add(date.substring(3,4));
-        parsedDate.add(date.substring(5,9));
-        parsedDate.add(date.substring(10));
+    private static String[] handleWeekday(String[] parsedDate, String[] auxArray, String date, int pattern){
+        if(pattern != 3){
+            parsedDate[3] = auxArray[1];
+        } else {
+            parsedDate[3] = auxArray[0];
+        }
         return parsedDate;
     }
 
-    private static ArrayList<String> parsePattern2(String date){
-        ArrayList<String> parsedDate = new ArrayList<>();
-        parsedDate.add(date.substring(8,10));
-        parsedDate.add(date.substring(5,7));
-        parsedDate.add(date.substring(0,4));
-        parsedDate.add(date.substring(11));
-        return parsedDate;
-    }
-
-    private static ArrayList<String> parsePattern3(String date){
-        ArrayList<String> parsedDate = new ArrayList<>();
-        String[] splittedDate = date.split(" ");
-        parsedDate.add(splittedDate[1].substring(0,2));
-        parsedDate.add(splittedDate[1].substring(3,5));
-        parsedDate.add(splittedDate[1].substring(6,10));
-        parsedDate.add(splittedDate[0]);
-        return parsedDate;
-    }
-
-    private static ArrayList<String> chooseParsingPattern(String date, int pattern){
-        ArrayList<String> parsedDate = new ArrayList<>();
-        switch (pattern) {
-            case 0:
-                parsedDate = parsePattern0(date);
-                break;
-            case 1:
-                parsedDate = parsePattern1(date);
-                break;
-            case 2:
-                parsedDate = parsePattern2(date);
-                break;
-            case 3:
-                parsedDate = parsePattern3(date);
-                break;
+    private static String[] handleNumericalDate(String[] parsedDate, String[] auxArray, String[] auxDateArray, String date, int pattern){
+        if(pattern != 2){
+            if(pattern == 3){
+                auxDateArray = auxArray[1].split("\\.");
+            } else {
+                auxDateArray = auxArray[0].split("/");
+            }
+            parsedDate[0] = auxDateArray[0];
+            parsedDate[1] = auxDateArray[1];
+            parsedDate[2] = auxDateArray[2];
+        } else if(pattern == 2){
+            auxDateArray = auxArray[0].split("-");
+            parsedDate[0] = auxDateArray[2];
+            parsedDate[1] = auxDateArray[1];
+            parsedDate[2] = auxDateArray[0];
         }
         return parsedDate;
     }
