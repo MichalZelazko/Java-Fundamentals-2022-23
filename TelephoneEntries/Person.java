@@ -1,12 +1,23 @@
 public class Person extends TelephoneEntry{
     private String surname;
 
-    public Person(String name, String surname, Address address) {
-        super(name, address);
+    Person(String name, String surname, String countryCode, String localNumber, String street, String city) {
+        super(name, street, city, countryCode, localNumber);
         this.surname = surname; 
     }
-    
-    @Override
+
+    TelephoneNumber getTelephoneNumber() {
+        return address.getTelephoneNumber();
+    }
+
+    String getAddress() {
+        return address.getAddress();
+    }
+
+    String getName(){
+        return name + " " + surname;
+    }
+
     void description() {
         System.out.println(name + " " + surname);
         address.printAddress();

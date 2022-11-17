@@ -1,10 +1,21 @@
 public class Company extends TelephoneEntry{
 
-    public Company(String name, Address address) {
-        super(name, address);
+    Company(String name, String countryCode, String localNumber, String street, String city) {
+        super(name, street, city, countryCode, localNumber);
     }
-    
-    @Override
+
+    TelephoneNumber getTelephoneNumber() {
+        return address.getTelephoneNumber();
+    }
+
+    String getAddress() {
+        return address.getAddress();
+    }
+
+    String getName(){
+        return name;
+    }
+
     void description() {
         System.out.println(name);
         address.printAddress();

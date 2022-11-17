@@ -1,29 +1,21 @@
 public class TelephoneNumber implements Comparable<TelephoneNumber> {
-   private String countryCode;
-   private String localNumber;
+    private String countryCode;
+    private String localNumber;
 
-    public TelephoneNumber(String countryCode, String localNumber) {
+    TelephoneNumber(String countryCode, String localNumber) {
         this.countryCode = countryCode;
         this.localNumber = localNumber.replaceAll("\\s+", "");
     }
-
-    public String getCountryCode() {
-        return countryCode;
-    }
-
-    public String getLocalNumber() {
-        return localNumber;
-    }
     
     public void printTelephoneNumber() {
-        System.out.println("+" + countryCode + " " + localNumber);
+        System.out.println("+" + countryCode + " " + localNumber + "\n");
     }
 
     @Override
-    public int compareTo(TelephoneNumber o) {
-        int result = countryCode.compareTo(o.countryCode);
+    public int compareTo(TelephoneNumber otherNumber) {
+        int result = countryCode.compareTo(otherNumber.countryCode);
         if (result == 0) {
-            result = localNumber.compareTo(o.localNumber);
+            result = localNumber.compareTo(otherNumber.localNumber);
         }
         return result;
     }

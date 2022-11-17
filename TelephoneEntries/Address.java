@@ -1,10 +1,12 @@
 public class Address {
     private TelephoneNumber telephoneNumber;
-    private String address;
+    private String street;
+    private String city;
 
-    public Address(TelephoneNumber telephoneNumber, String address) {
-        this.telephoneNumber = telephoneNumber;
-        this.address = address;
+    Address(String countryCode, String localNumber, String street, String city) {
+        this.telephoneNumber = new TelephoneNumber(countryCode, localNumber);
+        this.street = street;
+        this.city = city;
     }
 
     public TelephoneNumber getTelephoneNumber() {
@@ -12,11 +14,11 @@ public class Address {
     }
 
     public String getAddress() {
-        return address;
+        return street + ", " + city;
     }
 
     public void printAddress() {
-        System.out.println(address);
+        System.out.println(street + ", " + city);
         telephoneNumber.printTelephoneNumber();
     }
 }
