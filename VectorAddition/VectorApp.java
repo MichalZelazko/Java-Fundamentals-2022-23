@@ -16,7 +16,7 @@ public class VectorApp {
             } catch (DifferentVectorsLengthsException e) {
                 System.out.println(e.getMessage());
                 System.out.println("The " + e.getDataForException()[1] + " vector length is " + e.getDataForException()[0]);
-                System.out.println("The " + e.getDataForException()[1] + " vector length is " + e.getDataForException()[3] + "than the " + e.getDataForException()[2] + " vector length");
+                System.out.println("The " + e.getDataForException()[1] + " vector length is " + e.getDataForException()[3] + " than the " + e.getDataForException()[2] + " vector length");
                 vectors = MyVector.enterVectors(numberOfVectors, input);
             }
         }
