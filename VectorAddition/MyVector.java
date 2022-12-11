@@ -74,41 +74,18 @@ public class MyVector{
         return new MyVector(sum);
     }
 
-    private int getLength(){
+    public int getLength(){
         return this.values.size();
     }
 
-    private static String[] prepareDataForException(MyVector v1, MyVector v2, int index){
-        String[] data = new String[4];
-        data[0] = Integer.toString(v1.getLength());
-        data[1] = Integer.toString(index + 1);
-        data[2] = Integer.toString(index + 2);
-        if (v1.getLength() > v2.getLength()){
-            data[3] = "bigger";
-        } else {
-            data[3] = "smaller";
-        }
-        if(index == 0){
-            data[1] += "st";
-            data[2] += "nd";
-        } else if (index == 1){
-            data[1] += "nd";
-            data[2] += "rd";
-        } else if (index == 2){
-            data[1] = "rd";
-            data[2] += "th";
-        } else {
-            data[1] += "th";
-            data[2] += "th";
-        }
-        return data;
+    public ArrayList<Integer> getVector(){
+        return this.values;
     }
 
     private static void checkVectorsLengths(ArrayList<MyVector> vectors) throws DifferentVectorsLengthsException{
         for (int i = 0; i < vectors.size() - 1; i++) {
             if (vectors.get(i).values.size() != vectors.get(i + 1).values.size()) {
-                String[] data = prepareDataForException(vectors.get(i), vectors.get(i + 1), i);
-                throw new DifferentVectorsLengthsException("The vectors are of a different size", data);
+                throw new DifferentVectorsLengthsException("The vectors are of a different size", vectors.get(i), vectors.get(i + 1), i);
             }
         }
     }
