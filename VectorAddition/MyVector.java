@@ -32,7 +32,7 @@ public class MyVector{
             System.out.print("Enter the values for vector " + (i + 1) + " (separated by comma, press Enter to finish): ");
             String vectorValues = input.next();
             String[] vectorValuesArray = vectorValues.split(",");
-           ArrayList<Integer> vectorValuesIntArray = new ArrayList<Integer>();
+            ArrayList<Integer> vectorValuesIntArray = new ArrayList<Integer>();
             for (int j = 0; j < vectorValuesArray.length; j++) {
                 try {
                     vectorValuesIntArray.add(Integer.parseInt(vectorValuesArray[j]));
@@ -53,12 +53,6 @@ public class MyVector{
         }
         vectorString += (vector.values.get(i) + "]\n");
         System.out.println(vectorString);
-    }
-
-    public static void printVectors(ArrayList<MyVector> vectors){
-        for (int i = 0; i < vectors.size(); i++) {
-            printVector(vectors.get(i));
-        }
     }
 
     public static MyVector addVectors(ArrayList<MyVector> vectors) throws DifferentVectorsLengthsException{
