@@ -2,7 +2,7 @@ import java.util.*;
 
 public class MyVector{
     private ArrayList<Integer> values;
-
+    
     public MyVector(ArrayList<Integer> values) {
         this.values = new ArrayList<Integer>();
         for (int i = 0; i < values.size(); i++) {
@@ -10,39 +10,12 @@ public class MyVector{
         }
     }
     
-    public static int enterNumberOfVectors(Scanner input) {
-        System.out.print("Enter the number of vectors you will enter: ");
-        boolean correctInput = false;
-        int numberOfVectors = 0;
-        while(!correctInput){
-            try{
-                numberOfVectors = input.nextInt();
-                correctInput = true;
-                return numberOfVectors;
-            } catch (InputMismatchException e) {
-                System.out.print("Enter an integer: ");
-            }
-        }
-        return numberOfVectors;
+    public int getLength(){
+        return this.values.size();
     }
 
-    public static ArrayList<MyVector> enterVectors(int numberOfVectors, Scanner input) {
-        ArrayList<MyVector> vectors = new ArrayList<MyVector>();
-        for (int i = 0; i < numberOfVectors; i++) {
-            System.out.print("Enter the values for vector " + (i + 1) + " (separated by comma, press Enter to finish): ");
-            String vectorValues = input.next();
-            String[] vectorValuesArray = vectorValues.split(",");
-            ArrayList<Integer> vectorValuesIntArray = new ArrayList<Integer>();
-            for (int j = 0; j < vectorValuesArray.length; j++) {
-                try {
-                    vectorValuesIntArray.add(Integer.parseInt(vectorValuesArray[j]));
-                } catch (NumberFormatException e) {
-                    continue;
-                }
-            }
-            vectors.add(new MyVector(vectorValuesIntArray));
-        }
-        return vectors;
+    public ArrayList<Integer> getVector(){
+        return this.values;
     }
 
     public static void printVector(MyVector vector){
@@ -66,14 +39,6 @@ public class MyVector{
             sum.add(sumOfValues);
         }
         return new MyVector(sum);
-    }
-
-    public int getLength(){
-        return this.values.size();
-    }
-
-    public ArrayList<Integer> getVector(){
-        return this.values;
     }
 
     private static void checkVectorsLengths(ArrayList<MyVector> vectors) throws DifferentVectorsLengthsException{
