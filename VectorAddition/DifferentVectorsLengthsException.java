@@ -1,17 +1,15 @@
+import java.util.ArrayList;
+
 public class DifferentVectorsLengthsException extends Exception {
 
-    private Integer[] lengthsAndIndexes;
+    private ArrayList<Integer> lengths;
 
-    public DifferentVectorsLengthsException(String message, MyVector v1, MyVector v2, int index){
+    public DifferentVectorsLengthsException(String message, ArrayList<Integer> vectorLengths){
         super(message);
-        this.lengthsAndIndexes = new Integer[4];
-        this.lengthsAndIndexes[0] = v1.getLength();
-        this.lengthsAndIndexes[1] = v2.getLength();
-        this.lengthsAndIndexes[2] = index + 1;
-        this.lengthsAndIndexes[3] = index + 2;
+        this.lengths = vectorLengths;
     }
 
-    public Integer[] getDataForExceptionMessage(){
-        return this.lengthsAndIndexes;
+    public ArrayList<Integer> getLengths(){
+        return this.lengths;
     }
 }

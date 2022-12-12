@@ -41,10 +41,18 @@ public class MyVector{
         return new MyVector(sum);
     }
 
+    private static ArrayList<Integer> getVectorsLengths(ArrayList<MyVector> vectors){
+        ArrayList<Integer> vectorLengths = new ArrayList<Integer>();
+        for (int i = 0; i < vectors.size(); i++) {
+            vectorLengths.add(vectors.get(i).getLength());
+        }
+        return vectorLengths;
+    }
+
     private static void checkVectorsLengths(ArrayList<MyVector> vectors) throws DifferentVectorsLengthsException{
         for (int i = 0; i < vectors.size() - 1; i++) {
             if (vectors.get(i).values.size() != vectors.get(i + 1).values.size()) {
-                throw new DifferentVectorsLengthsException("The vectors are of a different size", vectors.get(i), vectors.get(i + 1), i);
+                throw new DifferentVectorsLengthsException("The vectors are of a different size", getVectorsLengths(vectors));
             }
         }
     }
