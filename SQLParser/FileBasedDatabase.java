@@ -17,10 +17,11 @@ public class FileBasedDatabase {
   private static final Pattern DELETE_REGEX = Pattern.compile(DELETE_PATTERN);
 
   public static void main(String[] args) throws IOException {
-    String line;
-    BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+    Scanner query = new Scanner(System.in);
+    System.out.print("Enter a SQL statement (enter x to exit the program): ");
+    String line = query.nextLine();
 
-    while ((line = reader.readLine()) != null) {
+    while (line != null && !line.trim().equalsIgnoreCase("x")) {
       line = line.trim();
       if (line.isEmpty()) {
         continue;
@@ -51,28 +52,33 @@ public class FileBasedDatabase {
       } else {
         System.out.println("Error: Invalid SQL statement");
       }
+      System.out.print("Enter a SQL statement (enter x to exit the program): ");
+      line = query.nextLine();
     }
+    query.close();
   }
 
   private static void executeSelect(String tableName, String columns) throws IOException {
     File tableFile = new File(tableName + TABLE_FILE_SUFFIX);
     if (!tableFile.exists()) {
       System.out.println("Error: Table does not exist");
+      // TODO: no table exception
       return;
     }
 
-    String[] columnArray = columns.split(",");
+    String[] columnArray = columns.split(DELIMITER);
     BufferedReader reader = new BufferedReader(new FileReader(tableFile));
     String header = reader.readLine();
     if (header == null) {
       reader.close();
       return;
     }
+
     String[] headerArray = header.split(DELIMITER);
 
     Map<String, Integer> columnIndices = new HashMap<>();
     for (int i = 0; i < headerArray.length; i++) {
-      columnIndices.put(headerArray[i], i);
+      columnIndices.put(headerArray[i].trim(), i);
     }
 
     StringBuilder output = new StringBuilder();
@@ -101,10 +107,21 @@ public class FileBasedDatabase {
     File tableFile = new File(tableName + TABLE_FILE_SUFFIX);
     if (!tableFile.exists()) {
       System.out.println("Error: Table does not exist");
+      // TODO: no table exception
       return;
     }
 
     String[] valueArray = values.split(",");
+    for (int i = 0; i < valueArray.length; i++) {
+      valueArray[i] = valueArray[i].trim();
+      if (valueArray[i].startsWith("(")) {
+        valueArray[i] = valueArray[i].substring(1);
+      }
+      if (valueArray[i].endsWith(")")) {
+        valueArray[i] = valueArray[i].substring(0, valueArray[i].length() - 1);
+      }
+    }
+
     StringBuilder insert = new StringBuilder();
     for (String value : valueArray) {
       insert.append(value.trim()).append(DELIMITER);
@@ -124,33 +141,142 @@ public class FileBasedDatabase {
       return;
     }
 
-    List<String> lines = new ArrayList<>();
+    // Parse the updates string to determine the column names and new values
+    Map<String, String> updateMap = new HashMap<>();
+    for (String update : updates.split(",")) {
+      String[] updatePair = update.split("=");
+      String column = updatePair[0].trim();
+      String value = updatePair[1].trim();
+      updateMap.put(column, value);
+    }
+
+    // Read the table file and update the values in memory
+    List<String[]> rows = new ArrayList<>();
     BufferedReader reader = new BufferedReader(new FileReader(tableFile));
     String header = reader.readLine();
-    lines.add(header);
-
-    String[] updateArray = updates.split(",");
-    Map<String, String> updateMap = new HashMap<>();
-    StringBuilder updatedLine = new StringBuilder();
-    for (String value : updateArray) {
-      updatedLine.append(value).append(DELIMITER);
+    if (header == null) {
+      reader.close();
+      return;
     }
-    updatedLine.setLength(updatedLine.length() - 1);
-    lines.add(updatedLine.toString());
+
+    String[] headerArray = header.split(DELIMITER);
+
+    Map<String, Integer> columnIndices = new HashMap<>();
+    for (int i = 0; i < headerArray.length; i++) {
+      columnIndices.put(headerArray[i].trim(), i);
+    }
+
+    String line;
+    while ((line = reader.readLine()) != null) {
+      String[] values = line.split(DELIMITER);
+      boolean shouldUpdate = false;
+      if (condition != null) {
+        // Check if the row should be updated based on the condition
+        shouldUpdate = evaluateCondition(condition, headerArray, values);
+      } else {
+        shouldUpdate = true;
+      }
+
+      if (shouldUpdate) {
+        // Update the values in the row
+        for (Map.Entry<String, String> entry : updateMap.entrySet()) {
+          int index = columnIndices.get(entry.getKey());
+          values[index] = entry.getValue();
+        }
+      }
+      rows.add(values);
+    }
     reader.close();
 
+    // Write the updated table back to the file
     BufferedWriter writer = new BufferedWriter(new FileWriter(tableFile));
-    for (String updatedLine2 : lines) {
-      writer.write(updatedLine2);
+    writer.write(header);
+    writer.newLine();
+    for (String[] row : rows) {
+      for (int i = 0; i < row.length; i++) {
+        writer.write(row[i]);
+        if (i < row.length - 1) {
+          writer.write(DELIMITER);
+        }
+      }
       writer.newLine();
     }
     writer.close();
   }
 
+  // private static void executeUpdate(String tableName, String updates, String
+  // condition) throws IOException {
+  // File tableFile = new File(tableName + TABLE_FILE_SUFFIX);
+  // if (!tableFile.exists()) {
+  // System.out.println("Error: Table does not exist");
+  // return;
+  // }
+
+  // List<String> lines = new ArrayList<>();
+  // BufferedReader reader = new BufferedReader(new FileReader(tableFile));
+  // String header = reader.readLine();
+  // lines.add(header);
+
+  // String[] updateArray = updates.split(",");
+  // Map<String, String> updateMap = new HashMap<>();
+  // for (String update : updateArray) {
+  // String[] updatePair = update.split("=");
+  // updateMap.put(updatePair[0].trim(), updatePair[1].trim());
+  // }
+
+  // String[] headerArray = header.split(DELIMITER);
+
+  // String line;
+  // while ((line = reader.readLine()) != null) {
+  // String[] values = line.split(DELIMITER);
+  // boolean matchesCondition = evaluateCondition(condition, headerArray, values);
+  // if (matchesCondition) {
+  // for (int i = 0; i < headerArray.length; i++) {
+  // if (updateMap.containsKey(headerArray[i])) {
+  // values[i] = updateMap.get(headerArray[i]);
+  // }
+  // }
+  // }
+
+  // StringBuilder updatedLine = new StringBuilder();
+  // for (String value : values) {
+  // updatedLine.append(value.trim()).append(DELIMITER);
+  // }
+  // updatedLine.setLength(updatedLine.length() - 1);
+  // updatedLine.append("\n");
+  // lines.add(updatedLine.toString());
+  // }
+  // reader.close();
+
+  // BufferedWriter writer = new BufferedWriter(new FileWriter(tableFile));
+  // for (String updatedLine : lines) {
+  // writer.write(updatedLine);
+  // }
+  // writer.close();
+
+  // ---------------------------------------------
+
+  // StringBuilder updatedLine = new StringBuilder();
+  // for (String value : updateArray) {
+  // updatedLine.append(value).append(DELIMITER);
+  // }
+  // updatedLine.setLength(updatedLine.length() - 1);
+  // lines.add(updatedLine.toString());
+  // reader.close();
+
+  // BufferedWriter writer = new BufferedWriter(new FileWriter(tableFile));
+  // for (String updatedLine2 : lines) {
+  // writer.write(updatedLine2);
+  // writer.newLine();
+  // }
+  // writer.close();
+  // }
+
   private static void executeDelete(String tableName, String condition) throws IOException {
     File tableFile = new File(tableName + TABLE_FILE_SUFFIX);
     if (!tableFile.exists()) {
       System.out.println("Error: Table does not exist");
+      // TODO: no table exception
       return;
     }
 
