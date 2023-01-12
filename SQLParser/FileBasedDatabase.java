@@ -6,10 +6,11 @@ public class FileBasedDatabase {
   private static final String DELIMITER = ",";
   private static final String TABLE_FILE_SUFFIX = ".tbl";
 
-  private static final String SELECT_PATTERN = "^SELECT\\s+(.+?)\\s+FROM\\s+(\\S+)$";
+  private static final String SELECT_PATTERN = "^SELECT\\s+(.+?)\\s+FROM\\s+(\\S+)(?:\\s+WHERE\\s+)?(.+?)$";
   private static final String INSERT_PATTERN = "^INSERT\\s+INTO\\s+(\\S+)\\s+VALUES\\s+(.+?)$";
-  private static final String UPDATE_PATTERN = "^UPDATE\\s+(\\S+)\\s+SET\\s+(.+?)\\s+WHERE\\s+(.+?)$";
-  private static final String DELETE_PATTERN = "^DELETE\\s+FROM\\s+(\\S+)\\s+WHERE\\s+(.+?)$";
+  // TODO: fix set regex
+  private static final String UPDATE_PATTERN = "^UPDATE\\s+(\\S+)\\s+SET\\s+(.+?)(?:\\s+WHERE\\s+)?(.+)$";
+  private static final String DELETE_PATTERN = "^DELETE\\s+FROM\\s+(\\S+)(?:\\s+WHERE\\s+)?(.+?)$";
 
   private static final Pattern SELECT_REGEX = Pattern.compile(SELECT_PATTERN);
   private static final Pattern INSERT_REGEX = Pattern.compile(INSERT_PATTERN);
@@ -35,7 +36,8 @@ public class FileBasedDatabase {
       if (selectMatcher.matches()) {
         String columns = selectMatcher.group(1);
         String tableName = selectMatcher.group(2);
-        executeSelect(tableName, columns);
+        String condition = selectMatcher.group(3);
+        executeSelect(tableName, columns, condition);
       } else if (insertMatcher.matches()) {
         String tableName = insertMatcher.group(1);
         String values = insertMatcher.group(2);
@@ -43,6 +45,7 @@ public class FileBasedDatabase {
       } else if (updateMatcher.matches()) {
         String tableName = updateMatcher.group(1);
         String updates = updateMatcher.group(2);
+        System.out.println(updates);
         String condition = updateMatcher.group(3);
         executeUpdate(tableName, updates, condition);
       } else if (deleteMatcher.matches()) {
@@ -51,6 +54,7 @@ public class FileBasedDatabase {
         executeDelete(tableName, condition);
       } else {
         System.out.println("Error: Invalid SQL statement");
+        // TODO: invalid statement exception
       }
       System.out.print("Enter a SQL statement (enter x to exit the program): ");
       line = query.nextLine();
@@ -58,7 +62,7 @@ public class FileBasedDatabase {
     query.close();
   }
 
-  private static void executeSelect(String tableName, String columns) throws IOException {
+  private static void executeSelect(String tableName, String columns, String condition) throws IOException {
     File tableFile = new File(tableName + TABLE_FILE_SUFFIX);
     if (!tableFile.exists()) {
       System.out.println("Error: Table does not exist");
@@ -91,12 +95,18 @@ public class FileBasedDatabase {
     String line;
     while ((line = reader.readLine()) != null) {
       String[] values = line.split(DELIMITER);
-      for (String column : columnArray) {
-        int index = columnIndices.get(column.trim());
-        output.append(values[index]).append(DELIMITER);
+      boolean matchesCondition = true;
+      if (condition != null) {
+        matchesCondition = evaluateCondition(condition, headerArray, values);
       }
-      output.setLength(output.length() - 1);
-      output.append("\n");
+      if (matchesCondition) {
+        for (String column : columnArray) {
+          int index = columnIndices.get(column.trim());
+          output.append(values[index]).append(DELIMITER);
+        }
+        output.setLength(output.length() - 1);
+        output.append("\n");
+      }
     }
 
     reader.close();
@@ -169,15 +179,13 @@ public class FileBasedDatabase {
     String line;
     while ((line = reader.readLine()) != null) {
       String[] values = line.split(DELIMITER);
-      boolean shouldUpdate = false;
+      boolean matchesCondition = true;
       if (condition != null) {
         // Check if the row should be updated based on the condition
-        shouldUpdate = evaluateCondition(condition, headerArray, values);
-      } else {
-        shouldUpdate = true;
+        matchesCondition = evaluateCondition(condition, headerArray, values);
       }
 
-      if (shouldUpdate) {
+      if (matchesCondition) {
         // Update the values in the row
         for (Map.Entry<String, String> entry : updateMap.entrySet()) {
           int index = columnIndices.get(entry.getKey());
@@ -221,8 +229,11 @@ public class FileBasedDatabase {
 
     String line;
     while ((line = reader.readLine()) != null) {
+      boolean matchesCondition = true;
       String[] values = line.split(DELIMITER);
-      boolean matchesCondition = evaluateCondition(condition, headerArray, values);
+      if (condition != null) {
+        matchesCondition = evaluateCondition(condition, headerArray, values);
+      }
       if (!matchesCondition) {
         lines.add(line);
       }
@@ -247,10 +258,10 @@ public class FileBasedDatabase {
     }
 
     // Get column index
-    String column = parts[0];
+    String column = parts[0].trim();
     int columnIndex = -1;
     for (int i = 0; i < headerArray.length; i++) {
-      if (headerArray[i].equals(column)) {
+      if (headerArray[i].trim().equals(column)) {
         columnIndex = i;
         break;
       }
@@ -259,10 +270,9 @@ public class FileBasedDatabase {
       // Invalid column name
       return false;
     }
-
     // Get operator and value
-    String operator = parts[1];
-    String value = parts[2];
+    String operator = parts[1].trim();
+    String value = parts[2].trim();
 
     // Evaluate condition
     if ("=".equals(operator)) {
