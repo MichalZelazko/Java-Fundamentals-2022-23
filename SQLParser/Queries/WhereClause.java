@@ -3,21 +3,13 @@ package Queries;
 public class WhereClause {
   public static boolean evaluateCondition(String condition, String[] headerArray, String[] values)
       throws IllegalArgumentException {
-    // Split condition into parts
-    String[] parts = condition.trim().split("\\s+");
-    if (parts.length != 3) {
-      // Invalid condition
-      return false;
-    }
-
-    // Get column index
+    String[] parts = parseConditionIntoParts(condition);
     String column = parts[0].trim();
     int columnIndex = getColumnIndex(column, headerArray);
-    // Get operator and value
+
     String operator = parts[1].trim();
     String value = parts[2].trim();
 
-    // Evaluate condition
     if ("=".equals(operator)) {
       return values[columnIndex].equals(value);
     } else if ("!=".equals(operator)) {
@@ -55,8 +47,7 @@ public class WhereClause {
         return false;
       }
     } else {
-      // Invalid operator
-      return false;
+      throw new IllegalArgumentException("Invalid comparison operator");
     }
   }
 
@@ -67,5 +58,13 @@ public class WhereClause {
       }
     }
     throw new IllegalArgumentException("Column " + column + " doesn't exist");
+  }
+
+  private static String[] parseConditionIntoParts(String condition) throws IllegalArgumentException {
+    String[] parts = condition.trim().split("\\s+");
+    if (parts.length != 3) {
+      throw new IllegalArgumentException("Invalid condition");
+    }
+    return parts;
   }
 }
