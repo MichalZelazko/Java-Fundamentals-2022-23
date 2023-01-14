@@ -17,43 +17,11 @@ public class Select {
 
     String[] columnArray = columns.split(DELIMITER);
     BufferedReader reader = new BufferedReader(new FileReader(tableFile));
-    String header = reader.readLine();
-    if (header == null) {
-      reader.close();
-      throw new EmptyTableException("Table " + tableName + " is empty", tableName);
-    }
-
+    String header = getHeader(tableName, reader);
     String[] headerArray = header.split(DELIMITER);
-
-    Map<String, Integer> columnIndices = new HashMap<>();
-    for (int i = 0; i < headerArray.length; i++) {
-      columnIndices.put(headerArray[i].trim(), i);
-    }
-
-    StringBuilder output = new StringBuilder();
-    for (String column : columnArray) {
-      output.append(column.trim()).append(DELIMITER);
-    }
-    output.setLength(output.length() - 1);
-    output.append("\n");
-
-    String line;
-    while ((line = reader.readLine()) != null) {
-      String[] values = line.split(DELIMITER);
-      boolean matchesCondition = true;
-      if (condition != null) {
-        matchesCondition = WhereClause.evaluateCondition(condition, headerArray, values);
-      }
-      if (matchesCondition) {
-        for (String column : columnArray) {
-          int index = columnIndices.get(column.trim());
-          output.append(values[index]).append(DELIMITER);
-        }
-        output.setLength(output.length() - 1);
-        output.append("\n");
-      }
-    }
-
+    Map<String, Integer> columnIndices = getColumnIndices(headerArray);
+    String output = addHeadersToOutput(columnArray);
+    output = addValuesToOutput(output, reader, condition, columnArray, headerArray, columnIndices);
     reader.close();
     System.out.println(output.toString());
   }
@@ -64,5 +32,51 @@ public class Select {
       throw new TableNotFoundException("Table " + tableName + " does not exist", tableName);
     }
     return tableFile;
+  }
+
+  private static String getHeader(String tableName, BufferedReader reader) throws IOException, EmptyTableException {
+    String header = reader.readLine();
+    if (header == null) {
+      reader.close();
+      throw new EmptyTableException("Table " + tableName + " is empty", tableName);
+    }
+    return header;
+  }
+
+  private static HashMap<String, Integer> getColumnIndices(String[] headerArray) {
+    HashMap<String, Integer> columnIndices = new HashMap<>();
+    for (int i = 0; i < headerArray.length; i++) {
+      columnIndices.put(headerArray[i].trim(), i);
+    }
+    return columnIndices;
+  }
+
+  private static String addHeadersToOutput(String[] columnArray) {
+    String output = new String("");
+    for (String column : columnArray) {
+      output += column.trim() + DELIMITER;
+    }
+    output = output.substring(0, output.length() - 1) + "\n";
+    return output;
+  }
+
+  private static String addValuesToOutput(String output, BufferedReader reader, String condition, String[] columnArray,
+      String[] headerArray, Map<String, Integer> columnIndices) throws IOException {
+    String line;
+    while ((line = reader.readLine()) != null) {
+      String[] values = line.split(DELIMITER);
+      boolean matchesCondition = true;
+      if (condition != null) {
+        matchesCondition = WhereClause.evaluateCondition(condition, headerArray, values);
+      }
+      if (matchesCondition) {
+        for (String column : columnArray) {
+          int index = columnIndices.get(column.trim());
+          output += values[index] + DELIMITER;
+        }
+        output = output.substring(0, output.length() - 1) + "\n";
+      }
+    }
+    return output;
   }
 }

@@ -54,7 +54,7 @@ public class Insert {
   private static String prepareStringForInsertion(String[] valueArray) {
     String insert = new String("");
     for (String value : valueArray) {
-      insert += value.trim() + (DELIMITER);
+      insert += value.trim() + DELIMITER;
     }
     insert = insert.substring(0, insert.length() - 1) + "\n";
     return insert;
