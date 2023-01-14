@@ -1,7 +1,10 @@
+package Queries;
 
 //add necessary imports
 import java.io.*;
 import java.util.ArrayList;
+
+import Exceptions.TableNotFoundException;
 
 public class Delete {
   private static final String DELIMITER = ",";

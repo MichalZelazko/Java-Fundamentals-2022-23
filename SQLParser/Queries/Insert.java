@@ -1,4 +1,8 @@
+package Queries;
+
 import java.io.*;
+
+import Exceptions.TableNotFoundException;
 
 public class Insert {
   private static final String DELIMITER = ",";

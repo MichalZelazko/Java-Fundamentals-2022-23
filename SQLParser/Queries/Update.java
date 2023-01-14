@@ -1,18 +1,27 @@
+package Queries;
+
 import java.io.*;
 import java.util.*;
 
-public class Select {
+import Exceptions.TableNotFoundException;
+
+public class Update {
   private static final String DELIMITER = ",";
   private static final String TABLE_FILE_SUFFIX = ".tbl";
 
-  public static void executeSelect(String tableName, String columns, String condition)
+  public static void executeUpdate(String tableName, String update, String condition)
       throws IOException, TableNotFoundException {
     File tableFile = new File(tableName + TABLE_FILE_SUFFIX);
     if (!tableFile.exists()) {
       throw new TableNotFoundException("Table " + tableName + " does not exist", tableName);
     }
 
-    String[] columnArray = columns.split(DELIMITER);
+    String[] updatePair = update.split("=");
+    String column = updatePair[0].trim();
+    String value = updatePair[1].trim();
+
+    // Read the table file and update the values in memory
+    ArrayList<String[]> rows = new ArrayList<>();
     BufferedReader reader = new BufferedReader(new FileReader(tableFile));
     String header = reader.readLine();
     if (header == null) {
@@ -27,31 +36,37 @@ public class Select {
       columnIndices.put(headerArray[i].trim(), i);
     }
 
-    StringBuilder output = new StringBuilder();
-    for (String column : columnArray) {
-      output.append(column.trim()).append(DELIMITER);
-    }
-    output.setLength(output.length() - 1);
-    output.append("\n");
-
     String line;
     while ((line = reader.readLine()) != null) {
       String[] values = line.split(DELIMITER);
       boolean matchesCondition = true;
       if (condition != null) {
+        // Check if the row should be updated based on the condition
         matchesCondition = WhereClause.evaluateCondition(condition, headerArray, values);
       }
-      if (matchesCondition) {
-        for (String column : columnArray) {
-          int index = columnIndices.get(column.trim());
-          output.append(values[index]).append(DELIMITER);
-        }
-        output.setLength(output.length() - 1);
-        output.append("\n");
-      }
-    }
 
+      if (matchesCondition) {
+        // Update the values in the row
+        int index = columnIndices.get(column);
+        values[index] = value;
+      }
+      rows.add(values);
+    }
     reader.close();
-    System.out.println(output.toString());
+
+    // Write the updated table back to the file
+    BufferedWriter writer = new BufferedWriter(new FileWriter(tableFile));
+    writer.write(header);
+    writer.newLine();
+    for (String[] row : rows) {
+      for (int i = 0; i < row.length; i++) {
+        writer.write(row[i]);
+        if (i < row.length - 1) {
+          writer.write(DELIMITER);
+        }
+      }
+      writer.newLine();
+    }
+    writer.close();
   }
 }

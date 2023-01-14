@@ -2,6 +2,13 @@ import java.io.*;
 import java.util.*;
 import java.util.regex.*;
 
+import Exceptions.EmptyTableException;
+import Exceptions.TableNotFoundException;
+import Queries.Delete;
+import Queries.Insert;
+import Queries.Select;
+import Queries.Update;
+
 public class FileBasedDatabase {
   private static final String SELECT_PATTERN = "^SELECT\\s+(.+?)\\s+FROM\\s+(\\S+)(?:\\s+WHERE\\s+)?(.+?)?$";
   private static final String INSERT_PATTERN = "^INSERT\\s+INTO\\s+(\\S+)\\s+VALUES\\s+(.+?)$";
@@ -20,9 +27,6 @@ public class FileBasedDatabase {
 
     while (line != null && !line.trim().equalsIgnoreCase("x")) {
       line = line.trim();
-      if (line.isEmpty()) {
-        continue;
-      }
 
       Matcher selectMatcher = SELECT_REGEX.matcher(line);
       Matcher insertMatcher = INSERT_REGEX.matcher(line);
@@ -30,54 +34,79 @@ public class FileBasedDatabase {
       Matcher deleteMatcher = DELETE_REGEX.matcher(line);
 
       if (selectMatcher.matches()) {
-        String columns = selectMatcher.group(1);
-        String tableName = selectMatcher.group(2);
-        String condition = selectMatcher.group(3);
-        try {
-          Select.executeSelect(tableName, columns, condition);
-        } catch (TableNotFoundException e) {
-          System.out.println(e.getMessage());
-        } catch (IOException e) {
-          System.out.println("Error: " + e.getMessage());
-        }
+        trySelect(selectMatcher);
       } else if (insertMatcher.matches()) {
-        String tableName = insertMatcher.group(1);
-        String values = insertMatcher.group(2);
-        try {
-          Insert.executeInsert(tableName, values);
-        } catch (TableNotFoundException e) {
-          System.out.println(e.getMessage());
-        } catch (IOException e) {
-          System.out.println("Error: " + e.getMessage());
-        }
+        tryInsert(insertMatcher);
       } else if (updateMatcher.matches()) {
-        String tableName = updateMatcher.group(1);
-        String update = updateMatcher.group(2) + " = " + updateMatcher.group(3);
-        String condition = updateMatcher.group(4);
-        try {
-          Update.executeUpdate(tableName, update, condition);
-        } catch (TableNotFoundException e) {
-          System.out.println(e.getMessage());
-        } catch (IOException e) {
-          System.out.println("Error: " + e.getMessage());
-        }
+        tryUpdate(updateMatcher);
       } else if (deleteMatcher.matches()) {
-        String tableName = deleteMatcher.group(1);
-        String condition = deleteMatcher.group(2);
-        try {
-          Delete.executeDelete(tableName, condition);
-        } catch (TableNotFoundException e) {
-          System.out.println(e.getMessage());
-        } catch (IOException e) {
-          System.out.println("Error: " + e.getMessage());
-        }
+        tryDelete(deleteMatcher);
       } else {
-        System.out.println("Error: Invalid SQL statement");
-        // TODO: invalid statement exception
+        System.out.println("Error: Invalid SQL statement. Try again.");
       }
       System.out.print("Enter a SQL statement (enter x to exit the program): ");
       line = query.nextLine();
     }
     query.close();
+  }
+
+  private static String getQuery() {
+    Scanner query = new Scanner(System.in);
+    System.out.print("Enter a SQL statement (enter x to exit the program): ");
+    String line = query.nextLine();
+    query.close();
+    return line;
+  }
+
+  private static void trySelect(Matcher selectMatcher) {
+    String columns = selectMatcher.group(1);
+    String tableName = selectMatcher.group(2);
+    String condition = selectMatcher.group(3);
+    try {
+      Select.executeSelect(tableName, columns, condition);
+    } catch (TableNotFoundException e) {
+      System.out.println(e.getMessage());
+    } catch (EmptyTableException e) {
+      System.out.println(e.getMessage());
+    } catch (IOException e) {
+      System.out.println("Error: " + e.getMessage());
+    }
+  }
+
+  private static void tryInsert(Matcher insertMatcher) {
+    String tableName = insertMatcher.group(1);
+    String values = insertMatcher.group(2);
+    try {
+      Insert.executeInsert(tableName, values);
+    } catch (TableNotFoundException e) {
+      System.out.println(e.getMessage());
+    } catch (IOException e) {
+      System.out.println("Error: " + e.getMessage());
+    }
+  }
+
+  private static void tryUpdate(Matcher updateMatcher) {
+    String tableName = updateMatcher.group(1);
+    String update = updateMatcher.group(2) + " = " + updateMatcher.group(3);
+    String condition = updateMatcher.group(4);
+    try {
+      Update.executeUpdate(tableName, update, condition);
+    } catch (TableNotFoundException e) {
+      System.out.println(e.getMessage());
+    } catch (IOException e) {
+      System.out.println("Error: " + e.getMessage());
+    }
+  }
+
+  private static void tryDelete(Matcher deleteMatcher) {
+    String tableName = deleteMatcher.group(1);
+    String condition = deleteMatcher.group(2);
+    try {
+      Delete.executeDelete(tableName, condition);
+    } catch (TableNotFoundException e) {
+      System.out.println(e.getMessage());
+    } catch (IOException e) {
+      System.out.println("Error: " + e.getMessage());
+    }
   }
 }

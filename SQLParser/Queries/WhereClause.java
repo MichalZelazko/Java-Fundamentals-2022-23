@@ -1,3 +1,5 @@
+package Queries;
+
 public class WhereClause {
   public static boolean evaluateCondition(String condition, String[] headerArray, String[] values) {
     // Split condition into parts
