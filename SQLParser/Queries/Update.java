@@ -12,7 +12,7 @@ public class Update {
   private static final String LOCATION = "Database/";
 
   public static void executeUpdate(String tableName, String update, String condition)
-      throws IOException, TableNotFoundException, EmptyTableException {
+      throws IOException, TableNotFoundException, EmptyTableException, IllegalArgumentException {
     File tableFile = assignFile(tableName);
 
     String[] updatePair = update.split("=");
@@ -24,6 +24,7 @@ public class Update {
     String header = getHeader(tableName, reader);
     String[] headerArray = header.split(DELIMITER);
     Map<String, Integer> columnIndices = getColumnIndices(headerArray);
+    checkColumn(column, columnIndices);
     ArrayList<String[]> rows = determineRowsToUpdate(reader, condition, headerArray, columnIndices, column, value);
 
     reader.close();
@@ -56,6 +57,12 @@ public class Update {
     writer.close();
   }
 
+  private static void checkColumn(String column, Map<String, Integer> columnIndices) throws IllegalArgumentException {
+    if (!columnIndices.containsKey(column)) {
+      throw new IllegalArgumentException("Column " + column + " doesn't exist");
+    }
+  }
+
   private static String getHeader(String tableName, BufferedReader reader) throws IOException, EmptyTableException {
     String header = reader.readLine();
     if (header == null) {
@@ -66,7 +73,8 @@ public class Update {
   }
 
   private static ArrayList<String[]> determineRowsToUpdate(BufferedReader reader, String condition,
-      String[] headerArray, Map<String, Integer> columnIndices, String column, String value) throws IOException {
+      String[] headerArray, Map<String, Integer> columnIndices, String column, String value)
+      throws IOException, IllegalArgumentException {
     ArrayList<String[]> rows = new ArrayList<>();
     String line;
     while ((line = reader.readLine()) != null) {

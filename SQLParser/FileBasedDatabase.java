@@ -74,6 +74,8 @@ public class FileBasedDatabase {
       System.out.println(e.getMessage());
     } catch (EmptyTableException e) {
       System.out.println(e.getMessage());
+    } catch (IllegalArgumentException e) {
+      System.out.println(e.getMessage());
     } catch (IOException e) {
       System.out.println("Error: " + e.getMessage());
     }
@@ -102,6 +104,8 @@ public class FileBasedDatabase {
     } catch (TableNotFoundException e) {
       System.out.println(e.getMessage());
     } catch (EmptyTableException e) {
+      System.out.println(e.getMessage());
+    } catch (IllegalArgumentException e) {
       System.out.println(e.getMessage());
     } catch (IOException e) {
       System.out.println("Error: " + e.getMessage());

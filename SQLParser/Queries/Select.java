@@ -12,12 +12,13 @@ public class Select {
   private static final String LOCATION = "Database/";
 
   public static void executeSelect(String tableName, String columns, String condition)
-      throws IOException, TableNotFoundException, EmptyTableException {
+      throws IOException, TableNotFoundException, EmptyTableException, IllegalArgumentException {
     File tableFile = assignFile(tableName);
     String[] columnArray = getColumnArray(columns, tableFile);
     BufferedReader reader = new BufferedReader(new FileReader(tableFile));
     String[] headerArray = getHeaderArray(tableName, reader);
     Map<String, Integer> columnIndices = getColumnIndices(headerArray);
+    checkColumns(columnArray, columnIndices);
     String output = addHeadersToOutput(columnArray);
     output = addValuesToOutput(output, reader, condition, columnArray, headerArray, columnIndices);
     reader.close();
@@ -30,6 +31,15 @@ public class Select {
       throw new TableNotFoundException("Table " + tableName + " does not exist", tableName);
     }
     return tableFile;
+  }
+
+  private static void checkColumns(String[] columnArray, Map<String, Integer> columnIndices)
+      throws IllegalArgumentException {
+    for (String column : columnArray) {
+      if (!columnIndices.containsKey(column.trim())) {
+        throw new IllegalArgumentException("Column " + column + " does not exist");
+      }
+    }
   }
 
   private static String[] getColumnArray(String columns, File tableFile) throws IOException {
@@ -52,8 +62,8 @@ public class Select {
     return header.split(DELIMITER);
   }
 
-  private static HashMap<String, Integer> getColumnIndices(String[] headerArray) {
-    HashMap<String, Integer> columnIndices = new HashMap<>();
+  private static Map<String, Integer> getColumnIndices(String[] headerArray) {
+    Map<String, Integer> columnIndices = new HashMap<>();
     for (int i = 0; i < headerArray.length; i++) {
       columnIndices.put(headerArray[i].trim(), i);
     }
@@ -78,7 +88,7 @@ public class Select {
   }
 
   private static String addValuesToOutput(String output, BufferedReader reader, String condition, String[] columnArray,
-      String[] headerArray, Map<String, Integer> columnIndices) throws IOException {
+      String[] headerArray, Map<String, Integer> columnIndices) throws IOException, IllegalArgumentException {
     String line;
     while ((line = reader.readLine()) != null) {
       String[] values = line.split(DELIMITER);

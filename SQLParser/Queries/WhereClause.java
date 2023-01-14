@@ -1,7 +1,8 @@
 package Queries;
 
 public class WhereClause {
-  public static boolean evaluateCondition(String condition, String[] headerArray, String[] values) {
+  public static boolean evaluateCondition(String condition, String[] headerArray, String[] values)
+      throws IllegalArgumentException {
     // Split condition into parts
     String[] parts = condition.trim().split("\\s+");
     if (parts.length != 3) {
@@ -11,17 +12,7 @@ public class WhereClause {
 
     // Get column index
     String column = parts[0].trim();
-    int columnIndex = -1;
-    for (int i = 0; i < headerArray.length; i++) {
-      if (headerArray[i].trim().equals(column)) {
-        columnIndex = i;
-        break;
-      }
-    }
-    if (columnIndex == -1) {
-      // Invalid column name
-      return false;
-    }
+    int columnIndex = getColumnIndex(column, headerArray);
     // Get operator and value
     String operator = parts[1].trim();
     String value = parts[2].trim();
@@ -67,5 +58,14 @@ public class WhereClause {
       // Invalid operator
       return false;
     }
+  }
+
+  private static int getColumnIndex(String column, String[] headerArray) throws IllegalArgumentException {
+    for (int i = 0; i < headerArray.length; i++) {
+      if (headerArray[i].trim().equals(column)) {
+        return i;
+      }
+    }
+    throw new IllegalArgumentException("Column " + column + " doesn't exist");
   }
 }
