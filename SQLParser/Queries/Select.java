@@ -14,11 +14,14 @@ public class Select {
   public static void executeSelect(String tableName, String columns, String condition)
       throws IOException, TableNotFoundException, EmptyTableException {
     File tableFile = assignFile(tableName);
-
-    String[] columnArray = columns.split(DELIMITER);
+    String[] columnArray;
+    if (columns.equals("*")) {
+      columnArray = getColumnsFromTable(tableFile);
+    } else {
+      columnArray = columns.split(DELIMITER);
+    }
     BufferedReader reader = new BufferedReader(new FileReader(tableFile));
-    String header = getHeader(tableName, reader);
-    String[] headerArray = header.split(DELIMITER);
+    String[] headerArray = getHeaderArray(tableName, reader);
     Map<String, Integer> columnIndices = getColumnIndices(headerArray);
     String output = addHeadersToOutput(columnArray);
     output = addValuesToOutput(output, reader, condition, columnArray, headerArray, columnIndices);
@@ -34,13 +37,14 @@ public class Select {
     return tableFile;
   }
 
-  private static String getHeader(String tableName, BufferedReader reader) throws IOException, EmptyTableException {
+  private static String[] getHeaderArray(String tableName, BufferedReader reader)
+      throws IOException, EmptyTableException {
     String header = reader.readLine();
     if (header == null) {
       reader.close();
       throw new EmptyTableException("Table " + tableName + " is empty", tableName);
     }
-    return header;
+    return header.split(DELIMITER);
   }
 
   private static HashMap<String, Integer> getColumnIndices(String[] headerArray) {
@@ -49,6 +53,14 @@ public class Select {
       columnIndices.put(headerArray[i].trim(), i);
     }
     return columnIndices;
+  }
+
+  private static String[] getColumnsFromTable(File tableFile) throws IOException {
+    BufferedReader reader = new BufferedReader(new FileReader(tableFile));
+    String header = reader.readLine();
+    String[] columnArray = header.split(DELIMITER);
+    reader.close();
+    return columnArray;
   }
 
   private static String addHeadersToOutput(String[] columnArray) {
