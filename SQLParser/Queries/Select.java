@@ -13,10 +13,7 @@ public class Select {
 
   public static void executeSelect(String tableName, String columns, String condition)
       throws IOException, TableNotFoundException, EmptyTableException {
-    File tableFile = new File(LOCATION + tableName + TABLE_FILE_SUFFIX);
-    if (!tableFile.exists()) {
-      throw new TableNotFoundException("Table " + tableName + " does not exist", tableName);
-    }
+    File tableFile = assignFile(tableName);
 
     String[] columnArray = columns.split(DELIMITER);
     BufferedReader reader = new BufferedReader(new FileReader(tableFile));
@@ -59,5 +56,13 @@ public class Select {
 
     reader.close();
     System.out.println(output.toString());
+  }
+
+  private static File assignFile(String tableName) throws TableNotFoundException {
+    File tableFile = new File(LOCATION + tableName + TABLE_FILE_SUFFIX);
+    if (!tableFile.exists()) {
+      throw new TableNotFoundException("Table " + tableName + " does not exist", tableName);
+    }
+    return tableFile;
   }
 }

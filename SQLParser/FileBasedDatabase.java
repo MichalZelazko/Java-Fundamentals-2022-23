@@ -21,13 +21,10 @@ public class FileBasedDatabase {
   private static final Pattern DELETE_REGEX = Pattern.compile(DELETE_PATTERN);
 
   public static void main(String[] args) {
-    Scanner query = new Scanner(System.in);
-    System.out.print("Enter a SQL statement (enter x to exit the program): ");
-    String line = query.nextLine();
+    Scanner scanner = new Scanner(System.in);
+    String line = getQuery(scanner);
 
-    while (line != null && !line.trim().equalsIgnoreCase("x")) {
-      line = line.trim();
-
+    while (line != null && !line.equalsIgnoreCase("x")) {
       Matcher selectMatcher = SELECT_REGEX.matcher(line);
       Matcher insertMatcher = INSERT_REGEX.matcher(line);
       Matcher updateMatcher = UPDATE_REGEX.matcher(line);
@@ -44,17 +41,14 @@ public class FileBasedDatabase {
       } else {
         System.out.println("Error: Invalid SQL statement. Try again.");
       }
-      System.out.print("Enter a SQL statement (enter x to exit the program): ");
-      line = query.nextLine();
+      line = getQuery(scanner);
     }
-    query.close();
+    scanner.close();
   }
 
-  private static String getQuery() {
-    Scanner query = new Scanner(System.in);
+  private static String getQuery(Scanner scanner) {
     System.out.print("Enter a SQL statement (enter x to exit the program): ");
-    String line = query.nextLine();
-    query.close();
+    String line = scanner.nextLine().trim();
     return line;
   }
 
@@ -82,6 +76,8 @@ public class FileBasedDatabase {
       System.out.println(e.getMessage());
     } catch (IOException e) {
       System.out.println("Error: " + e.getMessage());
+    } catch (IllegalArgumentException e) {
+      System.out.println(e.getMessage());
     }
   }
 

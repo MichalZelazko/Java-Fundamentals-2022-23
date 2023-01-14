@@ -12,10 +12,7 @@ public class Update {
 
   public static void executeUpdate(String tableName, String update, String condition)
       throws IOException, TableNotFoundException {
-    File tableFile = new File(LOCATION + tableName + TABLE_FILE_SUFFIX);
-    if (!tableFile.exists()) {
-      throw new TableNotFoundException("Table " + tableName + " does not exist", tableName);
-    }
+    File tableFile = assignFile(tableName);
 
     String[] updatePair = update.split("=");
     String column = updatePair[0].trim();
@@ -69,5 +66,13 @@ public class Update {
       writer.newLine();
     }
     writer.close();
+  }
+
+  private static File assignFile(String tableName) throws TableNotFoundException {
+    File tableFile = new File(LOCATION + tableName + TABLE_FILE_SUFFIX);
+    if (!tableFile.exists()) {
+      throw new TableNotFoundException("Table " + tableName + " does not exist", tableName);
+    }
+    return tableFile;
   }
 }
