@@ -14,12 +14,7 @@ public class Select {
   public static void executeSelect(String tableName, String columns, String condition)
       throws IOException, TableNotFoundException, EmptyTableException {
     File tableFile = assignFile(tableName);
-    String[] columnArray;
-    if (columns.equals("*")) {
-      columnArray = getColumnsFromTable(tableFile);
-    } else {
-      columnArray = columns.split(DELIMITER);
-    }
+    String[] columnArray = getColumnArray(columns, tableFile);
     BufferedReader reader = new BufferedReader(new FileReader(tableFile));
     String[] headerArray = getHeaderArray(tableName, reader);
     Map<String, Integer> columnIndices = getColumnIndices(headerArray);
@@ -35,6 +30,16 @@ public class Select {
       throw new TableNotFoundException("Table " + tableName + " does not exist", tableName);
     }
     return tableFile;
+  }
+
+  private static String[] getColumnArray(String columns, File tableFile) throws IOException {
+    String[] columnArray;
+    if (columns.equals("*")) {
+      columnArray = getColumnsFromTable(tableFile);
+    } else {
+      columnArray = columns.split(DELIMITER);
+    }
+    return columnArray;
   }
 
   private static String[] getHeaderArray(String tableName, BufferedReader reader)
