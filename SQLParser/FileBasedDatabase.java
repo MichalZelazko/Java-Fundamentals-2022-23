@@ -8,8 +8,7 @@ public class FileBasedDatabase {
 
   private static final String SELECT_PATTERN = "^SELECT\\s+(.+?)\\s+FROM\\s+(\\S+)(?:\\s+WHERE\\s+)?(.+?)$";
   private static final String INSERT_PATTERN = "^INSERT\\s+INTO\\s+(\\S+)\\s+VALUES\\s+(.+?)$";
-  // TODO: fix set regex
-  private static final String UPDATE_PATTERN = "^UPDATE\\s+(\\S+)\\s+SET\\s+(.+?)(?:\\s+WHERE\\s+)?(.+)$";
+  private static final String UPDATE_PATTERN = "^UPDATE\\s+(\\S+)\\s+SET\\s+(\\S+)\\s*=\\s*(\\S+)(?:\\s+WHERE\\s+)?(.+)$";
   private static final String DELETE_PATTERN = "^DELETE\\s+FROM\\s+(\\S+)(?:\\s+WHERE\\s+)?(.+?)$";
 
   private static final Pattern SELECT_REGEX = Pattern.compile(SELECT_PATTERN);
@@ -44,10 +43,9 @@ public class FileBasedDatabase {
         executeInsert(tableName, values);
       } else if (updateMatcher.matches()) {
         String tableName = updateMatcher.group(1);
-        String updates = updateMatcher.group(2);
-        System.out.println(updates);
-        String condition = updateMatcher.group(3);
-        executeUpdate(tableName, updates, condition);
+        String update = updateMatcher.group(2) + " = " + updateMatcher.group(3);
+        String condition = updateMatcher.group(4);
+        executeUpdate(tableName, update, condition);
       } else if (deleteMatcher.matches()) {
         String tableName = deleteMatcher.group(1);
         String condition = deleteMatcher.group(2);
@@ -144,21 +142,56 @@ public class FileBasedDatabase {
     writer.close();
   }
 
-  private static void executeUpdate(String tableName, String updates, String condition) throws IOException {
+  private static void executeUpdate(String tableName, String update, String condition) throws IOException {
     File tableFile = new File(tableName + TABLE_FILE_SUFFIX);
     if (!tableFile.exists()) {
       System.out.println("Error: Table does not exist");
       return;
     }
 
+    // // Parse the updates string to determine the column names and new values
+    // Map<String, String> updateMap = new HashMap<>();
+    // for (String update : updates.split(",")) {
+    // String[] updatePair = update.split("=");
+    // String column = updatePair[0].trim();
+    // String value = updatePair[1].trim();
+    // updateMap.put(column, value);
+    // }
+
+    // // Read the table file and update the values in memory
+    // List<String[]> rows = new ArrayList<>();
+    // BufferedReader reader = new BufferedReader(new FileReader(tableFile));
+    // String header = reader.readLine();
+    // if (header == null) {
+    // reader.close();
+    // return;
+    // }
+
+    // String[] headerArray = header.split(DELIMITER);
+
+    // Map<String, Integer> columnIndices = new HashMap<>();
+    // for (int i = 0; i < headerArray.length; i++) {
+    // columnIndices.put(headerArray[i].trim(), i);
+    // }
+
+    // String line;
+    // while ((line = reader.readLine()) != null) {
+    // String[] values = line.split(DELIMITER);
+    // boolean matchesCondition = true;
+    // if (condition != null) {
+    // // Check if the row should be updated based on the condition
+    // matchesCondition = evaluateCondition(condition, headerArray, values);
+    // }
+
+    // if (matchesCondition) {
+    // // Update the values in the row
+    // for (Map.Entry<String, String> entry : updateMap.entrySet()) {
+    // int index = columnIndices.get(entry.getKey());
+    // values[index] = entry.getValue();
     // Parse the updates string to determine the column names and new values
-    Map<String, String> updateMap = new HashMap<>();
-    for (String update : updates.split(",")) {
-      String[] updatePair = update.split("=");
-      String column = updatePair[0].trim();
-      String value = updatePair[1].trim();
-      updateMap.put(column, value);
-    }
+    String[] updatePair = update.split("=");
+    String column = updatePair[0].trim();
+    String value = updatePair[1].trim();
 
     // Read the table file and update the values in memory
     List<String[]> rows = new ArrayList<>();
@@ -187,10 +220,8 @@ public class FileBasedDatabase {
 
       if (matchesCondition) {
         // Update the values in the row
-        for (Map.Entry<String, String> entry : updateMap.entrySet()) {
-          int index = columnIndices.get(entry.getKey());
-          values[index] = entry.getValue();
-        }
+        int index = columnIndices.get(column);
+        values[index] = value;
       }
       rows.add(values);
     }
