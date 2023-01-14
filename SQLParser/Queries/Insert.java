@@ -7,9 +7,10 @@ import Exceptions.TableNotFoundException;
 public class Insert {
   private static final String DELIMITER = ",";
   private static final String TABLE_FILE_SUFFIX = ".tbl";
+  private static final String LOCATION = "Database/";
 
   public static void executeInsert(String tableName, String values) throws IOException, TableNotFoundException {
-    File tableFile = new File(tableName + TABLE_FILE_SUFFIX);
+    File tableFile = new File(LOCATION + tableName + TABLE_FILE_SUFFIX);
     if (!tableFile.exists()) {
       throw new TableNotFoundException("Table " + tableName + " does not exist", tableName);
     }

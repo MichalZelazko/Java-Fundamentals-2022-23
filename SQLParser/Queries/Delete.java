@@ -1,6 +1,5 @@
 package Queries;
 
-//add necessary imports
 import java.io.*;
 import java.util.ArrayList;
 
@@ -9,9 +8,10 @@ import Exceptions.TableNotFoundException;
 public class Delete {
   private static final String DELIMITER = ",";
   private static final String TABLE_FILE_SUFFIX = ".tbl";
+  private static final String LOCATION = "Database/";
 
   public static void executeDelete(String tableName, String condition) throws TableNotFoundException, IOException {
-    File tableFile = new File(tableName + TABLE_FILE_SUFFIX);
+    File tableFile = new File(LOCATION + tableName + TABLE_FILE_SUFFIX);
     if (!tableFile.exists()) {
       throw new TableNotFoundException("Table " + tableName + " does not exist", tableName);
     }
