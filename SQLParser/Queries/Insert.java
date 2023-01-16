@@ -47,6 +47,9 @@ public class Insert {
       if (valueArray[i].endsWith(")")) {
         valueArray[i] = valueArray[i].substring(0, valueArray[i].length() - 1);
       }
+      if (valueArray[i].isEmpty()) {
+        throw new IllegalArgumentException("Value cannot be empty");
+      }
     }
     return valueArray;
   }
