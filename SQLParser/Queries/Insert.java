@@ -6,7 +6,7 @@ import Exceptions.TableNotFoundException;
 
 public class Insert {
   private static final String DELIMITER = ",";
-  private static final String TABLE_FILE_SUFFIX = ".tbl";
+  private static final String TABLE_FILE_SUFFIX = ".txt";
   private static final String LOCATION = "Database/";
 
   public static void executeInsert(String tableName, String values)
@@ -56,10 +56,13 @@ public class Insert {
 
   private static String prepareStringForInsertion(String[] valueArray) {
     String insert = new String("");
-    for (String value : valueArray) {
-      insert += value.trim() + DELIMITER;
+    for (int i = 0; i < valueArray.length; i++) {
+      insert += valueArray[i];
+      if (i < valueArray.length - 1) {
+        insert += DELIMITER;
+      }
     }
-    insert = insert.substring(0, insert.length() - 1) + "\n";
+    insert += "\n";
     return insert;
   }
 

@@ -7,7 +7,7 @@ import Exceptions.TableAlreadyExistsException;
 
 public class TableHandler {
   private static final String DELIMITER = ",";
-  private static final String TABLE_FILE_SUFFIX = ".tbl";
+  private static final String TABLE_FILE_SUFFIX = ".txt";
   private static final String LOCATION = "Database/";
 
   public static void createTable(String tableName, String columns)
