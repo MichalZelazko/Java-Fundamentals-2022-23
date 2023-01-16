@@ -11,7 +11,7 @@ public class Select {
   private static final String TABLE_FILE_SUFFIX = ".txt";
   private static final String LOCATION = "Database/";
 
-  public static void executeSelect(String tableName, String columns, String condition)
+  public static void executeSelect(String tableName, String columns, String condition, String groupColumn)
       throws IOException, TableNotFoundException, EmptyTableException, IllegalArgumentException {
     File tableFile = assignFile(tableName);
     String[] columnArray = getColumnArray(columns, tableFile);
@@ -20,7 +20,7 @@ public class Select {
     Map<String, Integer> columnIndices = getColumnIndices(headerArray);
     checkColumns(columnArray, columnIndices);
     String output = addHeadersToOutput(columnArray);
-    output = addValuesToOutput(output, reader, condition, columnArray, headerArray, columnIndices);
+    output = addValuesToOutput(output, reader, condition, columnArray, headerArray, columnIndices, groupColumn);
     reader.close();
     System.out.println(output.toString());
   }
@@ -87,19 +87,37 @@ public class Select {
     return output;
   }
 
+  private static boolean shouldPut(String output, Map<String, Integer> columnIndices, String[] values, int index) {
+    String[] rows = output.split("\n");
+    for (int i = 1; i < rows.length; i++) {
+      if (rows[i].contains(values[index].trim())) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   private static String addValuesToOutput(String output, BufferedReader reader, String condition, String[] columnArray,
-      String[] headerArray, Map<String, Integer> columnIndices) throws IOException, IllegalArgumentException {
+      String[] headerArray, Map<String, Integer> columnIndices, String groupColumn)
+      throws IOException, IllegalArgumentException {
     String line;
     while ((line = reader.readLine()) != null) {
       String[] values = line.split(DELIMITER);
       boolean matchesCondition = true;
+      boolean shouldPut = true;
       if (condition != null) {
-        matchesCondition = WhereClause.evaluateCondition(condition, headerArray, values);
+        matchesCondition = WhereClause.evaluateCondition(condition, headerArray,
+            values);
       }
-      if (matchesCondition) {
+      if (matchesCondition && shouldPut) {
         for (String column : columnArray) {
           int index = columnIndices.get(column.trim());
-          output += values[index] + DELIMITER;
+          if (groupColumn != null) {
+            shouldPut = shouldPut(output, columnIndices, values, index);
+          }
+          if (shouldPut) {
+            output += values[index] + DELIMITER;
+          }
         }
         output = output.substring(0, output.length() - 1) + "\n";
       }

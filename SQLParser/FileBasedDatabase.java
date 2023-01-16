@@ -12,7 +12,7 @@ import Queries.Update;
 import Queries.TableHandler;
 
 public class FileBasedDatabase {
-  private static final String SELECT_PATTERN = "^SELECT\\s+(.+?)\\s+FROM\\s+(\\S+)(?:\\s+WHERE\\s+)?(.+?)?$";
+  private static final String SELECT_PATTERN = "^SELECT\\s+(.+?)\\s+FROM\\s+(\\S+)(?:\\s+WHERE\\s+)?(\\S+\\s*(?:<|>|=|<=|>=|!=)\\s*\\S+)?(?:\\s+GROUP\\s+BY\\s+)?(.+?)?$";
   private static final String INSERT_PATTERN = "^INSERT\\s+INTO\\s+(\\S+)\\s+VALUES\\s+(.+?)$";
   private static final String UPDATE_PATTERN = "^UPDATE\\s+(\\S+)\\s+SET\\s+(\\S+)\\s*=\\s*(\\S+)(?:\\s+WHERE\\s+)?(.+?)?$";
   private static final String DELETE_PATTERN = "^DELETE\\s+FROM\\s+(\\S+)(?:\\s+WHERE\\s+)?(.+?)?$";
@@ -68,8 +68,9 @@ public class FileBasedDatabase {
     String columns = selectMatcher.group(1);
     String tableName = selectMatcher.group(2);
     String condition = selectMatcher.group(3);
+    String groupColumn = selectMatcher.group(4);
     try {
-      Select.executeSelect(tableName, columns, condition);
+      Select.executeSelect(tableName, columns, condition, groupColumn);
     } catch (TableNotFoundException e) {
       System.out.println(e.getMessage());
     } catch (EmptyTableException e) {
